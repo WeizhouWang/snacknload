@@ -23,24 +23,31 @@ class _LoadingWidgetState extends State<LoadingWidget> {
     _overlayEntry = SnackNLoadOverlayEntry(
         builder: (BuildContext context) => ExcludeFocus(
                 child: ExcludeSemantics(
-              child: SnackNLoad.instance.w ?? const SizedBox.shrink(),
+              child: Material(
+                type: MaterialType.transparency,
+                child: SnackNLoad.instance.w ?? const SizedBox.shrink(),
+              ),
             )));
     SnackNLoad.instance.overlayEntry = _overlayEntry;
   }
 
   @override
+  void dispose() {
+    SnackNLoad.instance.overlayEntry = null;
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return Material(
-      child: Overlay(
-        initialEntries: [
-          SnackNLoadOverlayEntry(
-            builder: (BuildContext context) {
-              return widget.child ?? const SizedBox.shrink();
-            },
-          ),
-          _overlayEntry,
-        ],
-      ),
+    return Overlay(
+      initialEntries: [
+        SnackNLoadOverlayEntry(
+          builder: (BuildContext context) {
+            return widget.child ?? const SizedBox.shrink();
+          },
+        ),
+        _overlayEntry,
+      ],
     );
   }
 }

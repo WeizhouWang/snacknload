@@ -25,8 +25,9 @@ void configLoading() {
 }
 
 class EnhancedDemoPage extends StatefulWidget {
-  const EnhancedDemoPage({super.key, });
-
+  const EnhancedDemoPage({
+    super.key,
+  });
 
   @override
   State<EnhancedDemoPage> createState() => _EnhancedDemoPageState();
@@ -106,6 +107,7 @@ class _EnhancedDemoPageState extends State<EnhancedDemoPage> {
                         SnackNLoad.showProgress(
                           _progress,
                           status: '${(_progress * 100).toStringAsFixed(0)}%',
+                          maskType: MaskType.black,
                         );
                         _progress += 0.03;
 
@@ -175,6 +177,7 @@ class _EnhancedDemoPageState extends State<EnhancedDemoPage> {
                       showProgressBar: true,
                       duration: const Duration(seconds: 4),
                       enableSwipeToDismiss: true,
+                      useGlassmorphism: true,
                     );
                   },
                 ),
@@ -191,6 +194,7 @@ class _EnhancedDemoPageState extends State<EnhancedDemoPage> {
                       showProgressBar: true,
                       duration: const Duration(seconds: 4),
                       enableSwipeToDismiss: true,
+                      useGlassmorphism: true,
                     );
                   },
                 ),
@@ -216,6 +220,7 @@ class _EnhancedDemoPageState extends State<EnhancedDemoPage> {
                       position: SnackNLoadPosition.top,
                       showProgressBar: true,
                       duration: const Duration(seconds: 5),
+                      useGlassmorphism: true,
                       onTap: () {
                         print('Snackbar tapped!');
                       },
@@ -240,6 +245,7 @@ class _EnhancedDemoPageState extends State<EnhancedDemoPage> {
                       showProgressBar: true,
                       duration: const Duration(seconds: 4),
                       enableSwipeToDismiss: true,
+                      useGlassmorphism: true,
                     );
                   },
                 ),
@@ -255,6 +261,7 @@ class _EnhancedDemoPageState extends State<EnhancedDemoPage> {
                       position: SnackNLoadPosition.top,
                       showProgressBar: false,
                       duration: const Duration(seconds: 3),
+                      useGlassmorphism: true,
                     );
                   },
                 ),

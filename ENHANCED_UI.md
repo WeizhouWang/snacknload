@@ -11,7 +11,8 @@ This document describes the new enhanced UI features added to SnackNLoad, inspir
 
 ### 1. Enhanced Loading (`showEnhancedLoading`)
 
-Modern loading indicators with advanced visual effects:
+Modern loading indicators with advanced visual effects.
+**Note:** `useGlassmorphism` is disabled by default in v3.0.0+.
 
 ```dart
 SnackNLoad.showEnhancedLoading(
@@ -32,7 +33,8 @@ SnackNLoad.showEnhancedLoading(
 
 ### 2. Enhanced Snackbar (`showEnhancedSnackBar`)
 
-Rich notifications with interactive features:
+Rich notifications with interactive features.
+**Note:** `useGlassmorphism` is disabled by default in v3.0.0+.
 
 ```dart
 SnackNLoad.showEnhancedSnackBar(

@@ -172,16 +172,20 @@ SnackNLoad.showSnackBar(
 
 #### Enhanced Loading with Glassmorphism
 
+> **Note (v3.0.0+):** Glassmorphism is now **disabled by default**. Set `useGlassmorphism: true` to enable it.
+
 ```dart
 SnackNLoad.showEnhancedLoading(
   status: 'Loading...',
   maskType: MaskType.black,
   useBlur: true,              // Blur backdrop effect
-  useGlassmorphism: true,     // Modern glass effect
+  useGlassmorphism: true,     // MUST be set to true for glass effect
 );
 ```
 
 #### Enhanced Snackbar with Rich Features
+
+> **Note (v3.0.0+):** `useGlassmorphism` defaults to `false`. Enable it to see the glass effect.
 
 ```dart
 SnackNLoad.showEnhancedSnackBar(

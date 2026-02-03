@@ -1,3 +1,15 @@
+## 3.0.0 - Styles Reset & Configuration Fixes 🛠️
+
+### ⚠️ Breaking Changes
+
+- **Glassmorphism Disabled by Default**: To provide more standard behavior out-of-the-box, `glassmorphism` and enhanced shadows are now **disabled by default**. You must explicitly enable them if desired.
+- **Default Shadows Removed**: The container no longer forces a default black shadow when `boxShadow` is not configured. It now properly respects the `SnackNLoad.instance.boxShadow` configuration, defaulting to no shadow (`null`) if nothing is set.
+
+### 🐛 Fixes
+
+- **BoxShadow Configuration**: Fixed a bug where `SnackNLoad.instance.boxShadow` (e.g., `[]`) was being ignored by the Enhanced Loading widget. You can now completely remove shadows by passing an empty list.
+- **Dialog Updates**: Standardized dialog styles to match the new clean design philosophy.
+
 ## 2.0.0 - The Enhanced UI & Features Update 🚀
 
 This major release introduces a complete overhaul of the UI components, adding modern aesthetics and powerful new features including Enhanced Dialogs, Interactive Tutorials, and Glassmorphic Loading/Snackbars.

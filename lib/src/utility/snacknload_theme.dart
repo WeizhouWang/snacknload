@@ -26,7 +26,7 @@ class SnackNLoadTheme {
   /// Box Shadow
   static List<BoxShadow>? get boxShadow =>
       SnackNLoad.instance.loadingStyle == LoadingStyle.custom
-          ? SnackNLoad.instance.boxShadow ?? [BoxShadow()]
+          ? SnackNLoad.instance.boxShadow
           : null;
 
   /// Mask Color

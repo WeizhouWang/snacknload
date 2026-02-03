@@ -43,6 +43,9 @@ class EnhancedLoadingContainer extends StatefulWidget {
   /// Enable glassmorphism effect on container
   final bool useGlassmorphism;
 
+  /// Custom mask color for MaskType.custom
+  final Color? maskColor;
+
   const EnhancedLoadingContainer({
     super.key,
     this.indicator,
@@ -54,6 +57,7 @@ class EnhancedLoadingContainer extends StatefulWidget {
     this.animation = true,
     this.useBlur = true,
     this.useGlassmorphism = true,
+    this.maskColor,
   });
 
   @override
@@ -108,7 +112,8 @@ class EnhancedLoadingContainerState extends State<EnhancedLoadingContainer>
         widget.dismissOnTap ?? (SnackNLoadTheme.dismissOnTap ?? false);
     _shouldIgnorePointer =
         _shouldDismissOnTap ? false : SnackNLoadTheme.ignoring(widget.maskType);
-    _backdropMaskColor = SnackNLoadTheme.maskColor(widget.maskType);
+    _backdropMaskColor =
+        widget.maskColor ?? SnackNLoadTheme.maskColor(widget.maskType);
 
     _animationController = AnimationController(
       vsync: this,
@@ -299,13 +304,7 @@ class _EnhancedIndicator extends StatelessWidget {
         margin: const EdgeInsets.all(50.0),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(16),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.1),
-              blurRadius: 20,
-              spreadRadius: 5,
-            ),
-          ],
+          boxShadow: SnackNLoadTheme.boxShadow,
         ),
         child: ClipRRect(
           borderRadius: BorderRadius.circular(SnackNLoadTheme.radius),
@@ -340,14 +339,7 @@ class _EnhancedIndicator extends StatelessWidget {
       decoration: BoxDecoration(
         color: SnackNLoadTheme.backgroundColor,
         borderRadius: BorderRadius.circular(SnackNLoadTheme.radius),
-        boxShadow: SnackNLoadTheme.boxShadow ??
-            [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.2),
-                blurRadius: 15,
-                spreadRadius: 2,
-              ),
-            ],
+        boxShadow: SnackNLoadTheme.boxShadow,
       ),
       padding: SnackNLoadTheme.contentPadding,
       child: content,

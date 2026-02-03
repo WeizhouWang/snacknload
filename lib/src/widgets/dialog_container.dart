@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:ui';
 import 'package:snacknload/src/utility/enums.dart';
 import 'package:snacknload/src/utility/snacknload_container.dart';
 import 'package:snacknload/src/utility/snacknload_theme.dart';
@@ -23,6 +24,7 @@ class DialogContainer extends StatefulWidget {
   final List<ActionConfig>? actionConfigs;
   final bool isFullScreen;
   final SnackNLoadDialogType? dialogType;
+  final Color? maskColor;
 
   const DialogContainer({
     super.key,
@@ -39,6 +41,7 @@ class DialogContainer extends StatefulWidget {
     this.actionConfigs,
     this.isFullScreen = false,
     this.dialogType,
+    this.maskColor,
   });
 
   @override
@@ -65,7 +68,7 @@ class DialogContainerState extends State<DialogContainer>
         widget.dismissOnTap ?? (SnackNLoadTheme.dismissOnTap ?? false);
     _ignoring =
         _dismissOnTap ? false : SnackNLoadTheme.ignoring(widget.maskType);
-    _maskColor = SnackNLoadTheme.maskColor(widget.maskType);
+    _maskColor = widget.maskColor ?? SnackNLoadTheme.maskColor(widget.maskType);
     _animationController = AnimationController(
       vsync: this,
       duration: SnackNLoadTheme.animationDuration,
@@ -114,6 +117,7 @@ class DialogContainerState extends State<DialogContainer>
 
   @override
   Widget build(BuildContext context) {
+    // Allows interaction with dialog or backdrop
     return Stack(
       alignment: _alignment,
       children: <Widget>[
@@ -198,10 +202,8 @@ class DialogWidget extends StatelessWidget {
       return _buildFullScreenDialog(context);
     }
 
-    final type = dialogType ??
-        (useAdaptive
-            ? SnackNLoadDialogType.adaptive
-            : SnackNLoadDialogType.material);
+    // Default to enhanced if not specified
+    final type = dialogType ?? SnackNLoadDialogType.enhanced;
 
     switch (type) {
       case SnackNLoadDialogType.cupertino:
@@ -280,111 +282,153 @@ class DialogWidget extends StatelessWidget {
   Widget _buildEnhancedDialog(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
+    final isDark = theme.brightness == Brightness.dark;
 
     return Center(
-      child: Material(
-        color: Colors.transparent,
-        child: Container(
-          width: double.infinity,
-          constraints: const BoxConstraints(maxWidth: 340),
-          margin: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
-          decoration: BoxDecoration(
-            color: colorScheme.surface,
-            borderRadius: BorderRadius.circular(28),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.25),
-                blurRadius: 24,
-                offset: const Offset(0, 12),
+      child: Container(
+        width: double.infinity,
+        constraints: const BoxConstraints(maxWidth: 340),
+        margin: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(28),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.2),
+              blurRadius: 32,
+              offset: const Offset(0, 16),
+              spreadRadius: -4,
+            ),
+          ],
+        ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(28),
+          child: BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+            child: Container(
+              decoration: BoxDecoration(
+                color: isDark
+                    ? colorScheme.surface.withValues(alpha: 0.8)
+                    : colorScheme.surface.withValues(alpha: 0.95),
+                borderRadius: BorderRadius.circular(28),
+                border: Border.all(
+                  color: isDark
+                      ? Colors.white.withValues(alpha: 0.1)
+                      : Colors.black.withValues(alpha: 0.05),
+                  width: 1,
+                ),
               ),
-            ],
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              if (title != null || titleWidget != null)
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(24, 32, 24, 16),
-                  child: DefaultTextStyle(
-                    style: TextStyle(
-                      fontSize: 22,
-                      fontWeight: FontWeight.w700,
-                      color: colorScheme.onSurface,
-                      fontFamily: theme.textTheme.titleLarge?.fontFamily,
-                    ),
-                    textAlign: TextAlign.center,
-                    child: _buildTitle(context) ?? const SizedBox(),
-                  ),
-                ),
-              if (content != null)
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 24),
-                  child: DefaultTextStyle(
-                    style: TextStyle(
-                      fontSize: 16,
-                      color: colorScheme.onSurfaceVariant,
-                      height: 1.4,
-                    ),
-                    textAlign: TextAlign.center,
-                    child: content!,
-                  ),
-                ),
-              const SizedBox(height: 32),
-              if (actionConfigs != null && actionConfigs!.isNotEmpty)
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: actionConfigs!.map((e) {
-                      final isPrimary =
-                          e.buttonVariant == ButtonVariant.primary;
-                      final isDestructive =
-                          e.buttonVariant == ButtonVariant.danger;
-                      final isGhost = e.buttonVariant == ButtonVariant.ghost;
-
-                      return Padding(
-                        padding: const EdgeInsets.only(bottom: 8),
-                        child: ElevatedButton(
-                          onPressed: () async {
-                            await SnackNLoad.dismiss();
-                            e.onPressed();
-                          },
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: isGhost
-                                ? Colors.transparent
-                                : (isDestructive
-                                    ? colorScheme.error
-                                    : (isPrimary
-                                        ? colorScheme.primary
-                                        : colorScheme.surfaceContainerHighest)),
-                            foregroundColor: isGhost
-                                ? colorScheme.primary
-                                : (isDestructive
-                                    ? colorScheme.onError
-                                    : (isPrimary
-                                        ? colorScheme.onPrimary
-                                        : colorScheme.onSurfaceVariant)),
-                            elevation: isPrimary ? 2 : 0,
-                            padding: const EdgeInsets.symmetric(vertical: 16),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(16),
-                            ),
-                            shadowColor: Colors.transparent,
-                          ),
-                          child: Text(
-                            e.label,
-                            style: const TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  if (title != null || titleWidget != null)
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(24, 32, 24, 8),
+                      child: DefaultTextStyle(
+                        style: TextStyle(
+                          fontSize: 22,
+                          fontWeight: FontWeight.w700,
+                          color: colorScheme.onSurface,
+                          letterSpacing: -0.5,
+                          fontFamily: theme.textTheme.titleLarge?.fontFamily,
                         ),
-                      );
-                    }).toList(),
-                  ),
-                ),
-            ],
+                        textAlign: TextAlign.center,
+                        child: _buildTitle(context) ?? const SizedBox(),
+                      ),
+                    ),
+                  if (content != null)
+                    Padding(
+                      padding: EdgeInsets.only(
+                        left: 24,
+                        right: 24,
+                        top: (title != null || titleWidget != null) ? 8 : 32,
+                        bottom: 24,
+                      ),
+                      child: DefaultTextStyle(
+                        style: TextStyle(
+                          fontSize: 16,
+                          color: colorScheme.onSurfaceVariant,
+                          height: 1.5,
+                          letterSpacing: 0.1,
+                        ),
+                        textAlign: TextAlign.center,
+                        child: content!,
+                      ),
+                    ),
+                  if (actionConfigs != null && actionConfigs!.isNotEmpty)
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: actionConfigs!.map((e) {
+                          final isPrimary =
+                              e.buttonVariant == ButtonVariant.primary;
+                          final isDestructive =
+                              e.buttonVariant == ButtonVariant.danger;
+                          final isGhost =
+                              e.buttonVariant == ButtonVariant.ghost;
+
+                          return Padding(
+                            padding: const EdgeInsets.only(bottom: 8),
+                            child: ElevatedButton(
+                              onPressed: () async {
+                                await SnackNLoad.dismiss();
+                                e.onPressed();
+                              },
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: isGhost
+                                    ? Colors.transparent
+                                    : (isDestructive
+                                        ? colorScheme.error
+                                        : (isPrimary
+                                            ? colorScheme.primary
+                                            : colorScheme
+                                                .surfaceContainerHighest)),
+                                foregroundColor: isGhost
+                                    ? colorScheme.primary
+                                    : (isDestructive
+                                        ? colorScheme.onError
+                                        : (isPrimary
+                                            ? colorScheme.onPrimary
+                                            : colorScheme.onSurfaceVariant)),
+                                elevation: isPrimary ? 0 : 0,
+                                padding:
+                                    const EdgeInsets.symmetric(vertical: 16),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(16),
+                                ),
+                                shadowColor: Colors.transparent,
+                              ).copyWith(
+                                overlayColor: WidgetStateProperty.resolveWith(
+                                  (states) {
+                                    if (states.contains(WidgetState.pressed)) {
+                                      return (isDestructive
+                                              ? colorScheme.onError
+                                              : (isPrimary
+                                                  ? colorScheme.onPrimary
+                                                  : colorScheme
+                                                      .onSurfaceVariant))
+                                          .withValues(alpha: 0.1);
+                                    }
+                                    return null;
+                                  },
+                                ),
+                              ),
+                              child: Text(
+                                e.label,
+                                style: const TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ),
+                          );
+                        }).toList(),
+                      ),
+                    ),
+                ],
+              ),
+            ),
           ),
         ),
       ),

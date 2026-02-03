@@ -57,6 +57,9 @@ class EnhancedSnackBarContainer extends StatefulWidget {
   /// Custom background color (overrides type color)
   final Color? backgroundColor;
 
+  /// Custom mask color for MaskType.custom
+  final Color? maskColor;
+
   /// Inner padding around content
   final EdgeInsets? contentPadding;
 
@@ -112,6 +115,7 @@ class EnhancedSnackBarContainer extends StatefulWidget {
     this.enableSwipeToDismiss = true,
     this.useGlassmorphism = true,
     this.showCloseButton = true,
+    this.maskColor,
   });
 
   @override
@@ -147,7 +151,7 @@ class EnhancedSnackBarContainerState extends State<EnhancedSnackBarContainer>
         widget.dismissOnTap ?? (SnackNLoadTheme.dismissOnTap ?? false);
     _ignoring =
         _dismissOnTap ? false : SnackNLoadTheme.ignoring(widget.maskType);
-    _maskColor = SnackNLoadTheme.maskColor(widget.maskType);
+    _maskColor = widget.maskColor ?? SnackNLoadTheme.maskColor(widget.maskType);
 
     // Main animation controller
     _animationController = AnimationController(

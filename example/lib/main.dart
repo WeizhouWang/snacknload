@@ -244,6 +244,45 @@ class _MyHomePageState extends State<_MyHomePage> {
                       });
                     },
                   ),
+                  TextButton(
+                    child: Text('Show No Shadow'),
+                    onPressed: () async {
+                      _timer?.cancel();
+
+                      // Save current config
+                      final oldStyle = SnackNLoad.instance.loadingStyle;
+                      final oldMaskType = SnackNLoad.instance.maskType;
+                      final oldBoxShadow = SnackNLoad.instance.boxShadow;
+                      final oldBgColor = SnackNLoad.instance.backgroundColor;
+                      final oldTextColor = SnackNLoad.instance.textColor;
+
+                      // Apply no shadow config
+                      SnackNLoad.instance
+                        ..maskType = MaskType.custom
+                        ..maskColor = Colors.black45
+                        ..loadingStyle = LoadingStyle.custom
+                        ..textColor = Colors.transparent
+                        ..backgroundColor = Colors.transparent
+                        ..indicatorColor = Colors.white
+                        ..boxShadow = [] // This should remove the shadow
+                        ..userInteractions = false
+                        ..dismissOnTap = true; // Allow tap to dismiss for demo
+
+                      await SnackNLoad.show(status: "No Shadow");
+
+                      // Wait for dismiss or manual dismiss
+                      await Future.delayed(const Duration(seconds: 2));
+                      await SnackNLoad.dismiss();
+
+                      // Restore config
+                      SnackNLoad.instance
+                        ..loadingStyle = oldStyle
+                        ..maskType = oldMaskType
+                        ..boxShadow = oldBoxShadow
+                        ..backgroundColor = oldBgColor
+                        ..textColor = oldTextColor;
+                    },
+                  ),
                 ],
               ),
               Container(

@@ -3,17 +3,14 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:snacknload/src/utility/snacknload_theme.dart';
 import 'package:snacknload/src/widgets/dialog_container.dart';
-import 'package:snacknload/src/widgets/loading_container.dart';
 import 'package:snacknload/src/widgets/enhanced_loading_container.dart';
 import 'package:snacknload/src/widgets/enhanced_snackbar_container.dart';
 import 'package:snacknload/src/widgets/tutorial_tooltip.dart';
-
 import 'package:snacknload/src/widgets/feature_spotlight.dart';
 import 'package:snacknload/src/widgets/progress.dart';
 import 'package:snacknload/src/widgets/indicator.dart';
 import 'package:snacknload/src/widgets/overlay_entry.dart';
 import 'package:snacknload/src/widgets/loading.dart';
-import 'package:snacknload/src/widgets/snackbar_container.dart';
 import 'package:snacknload/src/widgets/snacknload_button.dart';
 import 'package:snacknload/src/animations/animation.dart';
 import 'enums.dart';
@@ -115,13 +112,13 @@ class SnackNLoad {
   Color? warningContainerColor;
 
   SnackNLoadOverlayEntry? overlayEntry;
-  GlobalKey<LoadingContainerState>? _key;
+  GlobalKey<dynamic>? _key;
   GlobalKey<LoadingProgressState>? _progressKey;
   Timer? _timer;
 
   Widget? get w => _w;
 
-  GlobalKey<LoadingContainerState>? get key => _key;
+  GlobalKey<dynamic>? get key => _key;
 
   GlobalKey<LoadingProgressState>? get progressKey => _progressKey;
 
@@ -182,13 +179,16 @@ class SnackNLoad {
     Widget? indicator,
     MaskType? maskType,
     bool? dismissOnTap,
-  }) {
+    SnackNLoadPosition? position,
+    Color? maskColor,
+  }) async {
     Widget w = indicator ?? (_instance.indicatorWidget ?? LoadingIndicator());
     return _instance._show(
       status: status,
       maskType: maskType,
       dismissOnTap: dismissOnTap,
       w: w,
+      maskColor: maskColor,
     );
   }
 
@@ -197,6 +197,7 @@ class SnackNLoad {
     double value, {
     String? status,
     MaskType? maskType,
+    Color? maskColor,
   }) async {
     assert(
       value >= 0.0 && value <= 1.0,
@@ -221,6 +222,7 @@ class SnackNLoad {
       _instance._show(
         status: status,
         maskType: maskType,
+        maskColor: maskColor,
         dismissOnTap: false,
         w: w,
       );
@@ -266,6 +268,7 @@ class SnackNLoad {
     List<ActionConfig>? actionConfigs,
     bool isFullScreen = false,
     SnackNLoadDialogType? dialogType,
+    Color? maskColor,
   }) async {
     assert(
       overlayEntry != null,
@@ -273,11 +276,9 @@ class SnackNLoad {
     );
 
     maskType ??= _instance.maskType;
+    Color? effectiveMaskColor = maskColor ?? _instance.maskColor;
     if (maskType == MaskType.custom) {
-      assert(
-        maskColor != null,
-        'while mask type is custom, maskColor should not be null',
-      );
+      effectiveMaskColor ??= Colors.black54;
     }
 
     if (animationStyle == SnackNLoadAnimationStyle.custom) {
@@ -292,7 +293,7 @@ class SnackNLoad {
     if (_key != null) await dismiss(animation: false);
 
     Completer<void> completer = Completer<void>();
-    _key = GlobalKey<LoadingContainerState>();
+    _key = GlobalKey();
     _w = DialogContainer(
       useAdaptive: useAdaptive ?? false,
       title: title,
@@ -307,6 +308,7 @@ class SnackNLoad {
       actionConfigs: actionConfigs,
       isFullScreen: isFullScreen,
       dialogType: dialogType,
+      maskColor: effectiveMaskColor,
     );
     completer.future.whenComplete(() {
       _callback(LoadingStatus.show);
@@ -366,6 +368,7 @@ class SnackNLoad {
     SnackNLoadPosition? position,
     MaskType? maskType,
     bool? dismissOnTap,
+    Color? maskColor,
   }) {
     return _instance._show(
       status: status,
@@ -373,6 +376,7 @@ class SnackNLoad {
       position: position ?? SnackNLoadTheme.position,
       maskType: maskType,
       dismissOnTap: dismissOnTap,
+      maskColor: maskColor,
     );
   }
 
@@ -392,6 +396,14 @@ class SnackNLoad {
     EdgeInsets? contentPadding,
     EdgeInsets? margin,
     Color? backgroundColor,
+    bool showProgressBar = true,
+    Widget? leading,
+    Widget? trailing,
+    VoidCallback? onTap,
+    bool enableSwipeToDismiss = true,
+    bool useGlassmorphism = false,
+    bool showCloseButton = true,
+    Color? maskColor,
   }) {
     return _instance._showSnackbar(
       message: message,
@@ -411,6 +423,14 @@ class SnackNLoad {
       margin: margin,
       contentPadding: contentPadding,
       backgroundColor: backgroundColor,
+      showProgressBar: showProgressBar,
+      leading: leading,
+      trailing: trailing,
+      onTap: onTap,
+      enableSwipeToDismiss: enableSwipeToDismiss,
+      useGlassmorphism: useGlassmorphism,
+      showCloseButton: showCloseButton,
+      maskColor: maskColor,
     );
   }
 
@@ -426,6 +446,7 @@ class SnackNLoad {
     List<ActionConfig>? actionConfigs,
     bool isFullScreen = false,
     SnackNLoadDialogType? dialogType,
+    Color? maskColor,
   }) {
     return _instance._showDialog(
       contentWidget: contentWidget,
@@ -438,13 +459,14 @@ class SnackNLoad {
       actionConfigs: actionConfigs,
       isFullScreen: isFullScreen,
       dialogType: dialogType,
+      maskColor: maskColor,
     );
   }
 
   /// Show a simple dialog with an OK button
   static Future<void> showOkDialog({
-    required String title,
-    required String content,
+    String? title,
+    String? content,
     String okLabel = 'OK',
     VoidCallback? onOk,
     bool useAdaptive = true,
@@ -454,7 +476,7 @@ class SnackNLoad {
   }) {
     return showDialog(
       title: title,
-      contentWidget: Text(content),
+      contentWidget: content != null ? Text(content) : null,
       useAdaptive: useAdaptive,
       titleStyle: titleStyle,
       maskType: maskType,
@@ -470,8 +492,8 @@ class SnackNLoad {
 
   /// Show a dialog with Confirm/Cancel buttons
   static Future<void> showDecisiveDialog({
-    required String title,
-    required String content,
+    String? title,
+    String? content,
     String confirmLabel = 'Confirm',
     String cancelLabel = 'Cancel',
     required VoidCallback onConfirm,
@@ -483,7 +505,7 @@ class SnackNLoad {
   }) {
     return showDialog(
       title: title,
-      contentWidget: Text(content),
+      contentWidget: content != null ? Text(content) : null,
       useAdaptive: useAdaptive,
       titleStyle: titleStyle,
       maskType: maskType,
@@ -505,8 +527,8 @@ class SnackNLoad {
 
   /// Show a dialog with custom actions
   static Future<void> showActionDialog({
-    required String title,
-    required Widget content,
+    String? title,
+    Widget? content,
     required List<ActionConfig> actions,
     bool useAdaptive = true,
     TextStyle? titleStyle,
@@ -526,8 +548,8 @@ class SnackNLoad {
 
   /// Show a full screen dialog
   static Future<void> showFullScreenDialog({
-    required String title,
-    required Widget content,
+    String? title,
+    Widget? content,
     Widget? titleWidget,
     List<ActionConfig>? actions,
     TextStyle? titleStyle,
@@ -551,7 +573,8 @@ class SnackNLoad {
     MaskType? maskType,
     bool? dismissOnTap,
     bool useBlur = true,
-    bool useGlassmorphism = true,
+    bool useGlassmorphism = false,
+    Color? maskColor,
   }) {
     Widget w = indicator ?? (_instance.indicatorWidget ?? LoadingIndicator());
     return _instance._showEnhanced(
@@ -561,6 +584,7 @@ class SnackNLoad {
       w: w,
       useBlur: useBlur,
       useGlassmorphism: useGlassmorphism,
+      maskColor: maskColor,
     );
   }
 
@@ -585,8 +609,9 @@ class SnackNLoad {
     Widget? trailing,
     VoidCallback? onTap,
     bool enableSwipeToDismiss = true,
-    bool useGlassmorphism = true,
+    bool useGlassmorphism = false,
     bool showCloseButton = true,
+    Color? maskColor,
   }) {
     return _instance._showEnhancedSnackbar(
       message: message,
@@ -721,70 +746,19 @@ class SnackNLoad {
     MaskType? maskType,
     bool? dismissOnTap,
     SnackNLoadPosition? position,
+    Color? maskColor,
   }) async {
-    assert(
-      overlayEntry != null,
-      'You should call SnackNLoadLoading.init() in your MaterialApp',
-    );
-
-    if (loadingStyle == LoadingStyle.custom) {
-      assert(
-        backgroundColor != null,
-        'while loading style is custom, backgroundColor should not be null',
-      );
-      assert(
-        indicatorColor != null,
-        'while loading style is custom, indicatorColor should not be null',
-      );
-      assert(
-        textColor != null,
-        'while loading style is custom, textColor should not be null',
-      );
-    }
-
-    maskType ??= _instance.maskType;
-    if (maskType == MaskType.custom) {
-      assert(
-        maskColor != null,
-        'while mask type is custom, maskColor should not be null',
-      );
-    }
-
-    if (animationStyle == SnackNLoadAnimationStyle.custom) {
-      assert(
-        customAnimation != null,
-        'while animationStyle is custom, customAnimation should not be null',
-      );
-    }
-
-    position ??= SnackNLoadPosition.center;
-    bool animation = _w == null;
-    _progressKey = null;
-    if (_key != null) await dismiss(animation: false);
-
-    Completer<void> completer = Completer<void>();
-    _key = GlobalKey<LoadingContainerState>();
-    _w = LoadingContainer(
-      key: _key,
+    return _showEnhanced(
+      w: w,
       status: status,
-      indicator: w,
-      animation: animation,
-      position: position,
+      duration: duration,
       maskType: maskType,
       dismissOnTap: dismissOnTap,
-      completer: completer,
+      position: position,
+      maskColor: maskColor,
+      useBlur: true,
+      useGlassmorphism: false,
     );
-    completer.future.whenComplete(() {
-      _callback(LoadingStatus.show);
-      if (duration != null) {
-        _cancelTimer();
-        _timer = Timer(duration, () async {
-          await dismiss();
-        });
-      }
-    });
-    _markNeedsBuild();
-    return completer.future;
   }
 
   /// show styled [status] [duration] [position] [maskType]
@@ -803,63 +777,36 @@ class SnackNLoad {
     EdgeInsets? contentPadding,
     EdgeInsets? margin,
     Color? backgroundColor,
+    bool showProgressBar = true,
+    Widget? leading,
+    Widget? trailing,
+    VoidCallback? onTap,
+    bool enableSwipeToDismiss = true,
+    bool useGlassmorphism = true,
+    bool showCloseButton = true,
+    Color? maskColor,
   }) async {
-    assert(
-      overlayEntry != null,
-      'You should call SnackNLoadLoading.init() in your MaterialApp',
-    );
-
-    maskType ??= _instance.maskType;
-    if (maskType == MaskType.custom) {
-      assert(
-        maskColor != null,
-        'while mask type is custom, maskColor should not be null',
-      );
-    }
-
-    if (animationStyle == SnackNLoadAnimationStyle.custom) {
-      assert(
-        customAnimation != null,
-        'while animationStyle is custom, customAnimation should not be null',
-      );
-    }
-
-    position ??= SnackNLoadPosition.center;
-    bool animation = _w == null;
-    _progressKey = null;
-    if (_key != null) await dismiss(animation: false);
-
-    Completer<void> completer = Completer<void>();
-    _key = GlobalKey<LoadingContainerState>();
-    _w = SnackBarContainer(
-      key: _key,
-      type: type,
+    return _showEnhancedSnackbar(
       message: message,
       title: title,
-      showIcon: showIcon,
-      animation: animation,
-      position: position,
+      duration: duration,
       maskType: maskType,
       dismissOnTap: dismissOnTap,
-      completer: completer,
+      showIcon: showIcon,
+      type: type,
+      showDivider: showDivider,
+      position: position,
       titleStyle: titleStyle,
       messageStyle: messageStyle,
-      showDivider: showDivider,
-      backgroundColor: backgroundColor,
       contentPadding: contentPadding,
       margin: margin,
+      backgroundColor: backgroundColor,
+      showProgressBar: true,
+      useGlassmorphism: true,
+      enableSwipeToDismiss: true,
+      showCloseButton: true,
+      maskColor: maskColor,
     );
-    completer.future.whenComplete(() {
-      _callback(LoadingStatus.show);
-      if (duration != null) {
-        _cancelTimer();
-        _timer = Timer(duration, () async {
-          await dismiss();
-        });
-      }
-    });
-    _markNeedsBuild();
-    return completer.future;
   }
 
   /// Enhanced show with modern UI effects
@@ -871,7 +818,8 @@ class SnackNLoad {
     bool? dismissOnTap,
     SnackNLoadPosition? position,
     bool useBlur = true,
-    bool useGlassmorphism = true,
+    bool useGlassmorphism = false,
+    Color? maskColor,
   }) async {
     assert(
       overlayEntry != null,
@@ -894,11 +842,11 @@ class SnackNLoad {
     }
 
     maskType ??= _instance.maskType;
+    Color? effectiveMaskColor = maskColor ?? _instance.maskColor;
+
     if (maskType == MaskType.custom) {
-      assert(
-        maskColor != null,
-        'while mask type is custom, maskColor should not be null',
-      );
+      // If custom mask with no color, default to black54 instead of crashing
+      effectiveMaskColor ??= Colors.black54;
     }
 
     position ??= SnackNLoadPosition.center;
@@ -907,7 +855,7 @@ class SnackNLoad {
     if (_key != null) await dismiss(animation: false);
 
     Completer<void> completer = Completer<void>();
-    _key = GlobalKey<LoadingContainerState>();
+    _key = GlobalKey();
     _w = EnhancedLoadingContainer(
       key: _key,
       status: status,
@@ -919,6 +867,7 @@ class SnackNLoad {
       completer: completer,
       useBlur: useBlur,
       useGlassmorphism: useGlassmorphism,
+      maskColor: effectiveMaskColor,
     );
     completer.future.whenComplete(() {
       _callback(LoadingStatus.show);
@@ -956,6 +905,7 @@ class SnackNLoad {
     bool enableSwipeToDismiss = true,
     bool useGlassmorphism = true,
     bool showCloseButton = true,
+    Color? maskColor,
   }) async {
     assert(
       overlayEntry != null,
@@ -963,11 +913,10 @@ class SnackNLoad {
     );
 
     maskType ??= _instance.maskType;
+    Color? effectiveMaskColor = maskColor ?? _instance.maskColor;
     if (maskType == MaskType.custom) {
-      assert(
-        maskColor != null,
-        'while mask type is custom, maskColor should not be null',
-      );
+      // If custom mask with no color, default to black54 instead of crashing
+      effectiveMaskColor ??= Colors.black54;
     }
 
     position ??= SnackNLoadPosition.top;
@@ -976,7 +925,7 @@ class SnackNLoad {
     if (_key != null) await dismiss(animation: false);
 
     Completer<void> completer = Completer<void>();
-    _key = GlobalKey<LoadingContainerState>();
+    _key = GlobalKey();
     _w = EnhancedSnackBarContainer(
       key: _key,
       type: type,
@@ -1002,6 +951,7 @@ class SnackNLoad {
       enableSwipeToDismiss: enableSwipeToDismiss,
       useGlassmorphism: useGlassmorphism,
       showCloseButton: showCloseButton,
+      maskColor: effectiveMaskColor,
     );
     completer.future.whenComplete(() {
       _callback(LoadingStatus.show);
